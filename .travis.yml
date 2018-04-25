@@ -4,6 +4,7 @@ python: "3.6"
 
 install:
   - pip install '.[test]'
+  - pip install --upgrade pytest
 
 script:
   - py.test
