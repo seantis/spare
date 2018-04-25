@@ -23,6 +23,8 @@ This is what you need to know:
 
 * If you forget your password, you cannot restore your files.
 
+* Python 3.6.2+ is required.
+
 Usage
 -----
 
