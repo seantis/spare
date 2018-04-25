@@ -3,6 +3,7 @@ import pytest
 import socket
 import tempfile
 
+from contextlib import suppress
 from pathlib import Path
 from spare.inventory import Inventory
 
@@ -93,7 +94,8 @@ def test_ignore_devices():
     inventory = Inventory('/dev')
 
     # no need to do this recursively (which might not be a great idea)
-    inventory.scan_directory(Path('/dev'), recurse=False)
+    with suppress(FileNotFoundError):
+        inventory.scan_directory(Path('/dev'), recurse=False)
 
 
 def test_read_outside_symlink(temporary_path):
