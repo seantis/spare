@@ -11,7 +11,7 @@ services using a very limited subset of S3 commands.
 
 This is what you need to know:
 
-* Spare should not be used in production yet! Use at your own risk.
+* Spare should not be used in production yet! **Use at your own risk.**
 
 * Spare stores exactly one copy of your data.
 
@@ -23,8 +23,12 @@ This is what you need to know:
 
 * If you forget your password, you cannot restore your files.
 
-CLI
----
+Usage
+-----
+
+To install spare::
+
+    pip install spare
 
 To set the connection parameters::
 
