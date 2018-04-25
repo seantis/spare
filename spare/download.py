@@ -2,7 +2,7 @@ import os
 import shutil
 
 from concurrent.futures import ThreadPoolExecutor
-from spare import log
+from spare import log, FOLLOW_SYMLINKS
 from spare.inventory import hash_implementation
 
 
@@ -106,12 +106,12 @@ class DownloadManager(object):
             clone, *links = paths
 
             if clone != genesis:
-                shutil.copyfile(genesis, clone, follow_symlinks=False)
-                shutil.copystat(genesis, clone, follow_symlinks=False)
+                shutil.copyfile(genesis, clone, **FOLLOW_SYMLINKS)
+                shutil.copystat(genesis, clone, **FOLLOW_SYMLINKS)
 
             for link in links:
                 # files are touched during structure creation, which is a
                 # problem for hard links
                 os.unlink(link)
 
-                os.link(clone, link, follow_symlinks=False)
+                os.link(clone, link, **FOLLOW_SYMLINKS)

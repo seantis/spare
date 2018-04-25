@@ -5,7 +5,7 @@ import pwd
 from cached_property import cached_property
 from itertools import groupby
 from pathlib import Path
-from spare import log
+from spare import log, FOLLOW_SYMLINKS
 from spare.errors import TargetPathNotEmpty
 from spare.download import Download, DownloadManager
 
@@ -70,8 +70,8 @@ class Recovery(object):
             uid = self.uids[status['user']]
             gid = self.gids[status['group']]
 
-            os.chmod(path, status['mode'], follow_symlinks=False)
-            os.chown(path, uid, gid, follow_symlinks=False)
+            os.chmod(path, status['mode'], **FOLLOW_SYMLINKS)
+            os.chown(path, uid, gid, **FOLLOW_SYMLINKS)
 
     def download_data(self, target):
         structure = self.snapshot.meta['structure']
