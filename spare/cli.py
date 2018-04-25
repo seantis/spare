@@ -1,0 +1,82 @@
+import click
+import pdb
+import sys
+import traceback
+
+from boto3 import resource
+from logbook import StreamHandler
+from spare.backup import create, restore, validate
+
+
+VALID_PATH = click.Path(exists=True, file_okay=False)
+
+
+def enable_post_mortem_debugging():  # pragma: no cover
+
+    def hook(type, value, tb):
+        if hasattr(sys, 'ps1') or not sys.stderr.isatty():
+            sys.__excepthook__(type, value, tb)
+        else:
+            traceback.print_exception(type, value, tb)
+            pdb.post_mortem(tb)
+
+    sys.excepthook = hook
+
+
+def s3_client(endpoint, access_key, secret_key):
+    endpoint = '://' in endpoint and endpoint or f'https://{endpoint}'
+
+    return resource(
+        service_name='s3',
+        endpoint_url=endpoint,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key)
+
+
+@click.group()
+@click.option('--pdb', help="Enable post-mortem debugging", is_flag=True)
+@click.option('--verbose', help="Print log messages to stdout", is_flag=True)
+@click.pass_context
+def cli(ctx, pdb, verbose):  # pragma: no cover
+    if pdb:
+        enable_post_mortem_debugging()
+
+    level = verbose and 'INFO' or 'WARNING'
+    StreamHandler(sys.stdout, level=level).push_application()
+
+
+@cli.command(name='create')
+@click.option('--endpoint', envvar='SPARE_ENDPOINT', required=True)
+@click.option('--access-key', envvar='SPARE_ACCESS_KEY', required=True)
+@click.option('--secret-key', envvar='SPARE_SECRET_KEY', required=True)
+@click.option('--password', envvar='SPARE_PASSWORD', required=True)
+@click.option('--bucket', envvar='SPARE_BUCKET', required=True)
+@click.option('--path', envvar='SPARE_PATH', type=VALID_PATH, required=True)
+def create_cli(endpoint, access_key, secret_key, path, password, bucket):
+    s3 = s3_client(endpoint, access_key, secret_key)
+    create(path, s3, bucket, password)
+
+
+@cli.command(name='restore')
+@click.option('--endpoint', envvar='SPARE_ENDPOINT', required=True)
+@click.option('--access-key', envvar='SPARE_ACCESS_KEY', required=True)
+@click.option('--secret-key', envvar='SPARE_SECRET_KEY', required=True)
+@click.option('--password', envvar='SPARE_PASSWORD', required=True)
+@click.option('--bucket', envvar='SPARE_BUCKET', required=True)
+@click.option('--path', envvar='SPARE_PATH', type=VALID_PATH, required=True)
+def restore_cli(endpoint, access_key, secret_key, path, password, bucket):
+    s3 = s3_client(endpoint, access_key, secret_key)
+    restore(path, s3, bucket, password)
+
+
+@cli.command(name='validate')
+@click.option('--endpoint', envvar='SPARE_ENDPOINT', required=True)
+@click.option('--access-key', envvar='SPARE_ACCESS_KEY', required=True)
+@click.option('--secret-key', envvar='SPARE_SECRET_KEY', required=True)
+@click.option('--password', envvar='SPARE_PASSWORD', required=True)
+@click.option('--bucket', envvar='SPARE_BUCKET', required=True)
+def validate_cli(endpoint, access_key, secret_key, password, bucket):
+    s3 = s3_client(endpoint, access_key, secret_key)
+    rc = 0 if validate(s3, bucket, password) else 1
+
+    sys.exit(rc)
