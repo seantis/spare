@@ -26,21 +26,21 @@ This is what you need to know:
 CLI
 ---
 
-To set the connection parameters:
+To set the connection parameters::
 
     export SPARE_ENDPOINT=host
     export SPARE_ACCESS_KEY=access-key
     export SPARE_SECRET_KEY=secret-key
 
-To backup a folder:
+To backup a folder::
 
     spare create --password my-password --bucket my-bucket --path /my-path
 
-To restore a backup:
+To restore a backup::
 
     spare restore --password my-password --bucket my-bucket --path /my-path
 
-To verify the backup (downloads everything!):
+To verify the backup (downloads everything!)::
 
     spare verify --password my-password --bucket my-bucket --path /my-path
 
@@ -49,7 +49,7 @@ Run the Tests
 
 Spare uses `Minio <https://www.minio.io>` to run tests against a real object
 storage server. As a result it can take a bit for the first test run to
-complete, as Minio is downloaded and stored in the pytest cache directory.
+complete, as Minio is downloaded and stored in the pytest cache directory::
 
     pip install -e '.[test]'
     py.test
