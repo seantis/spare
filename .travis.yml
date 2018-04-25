@@ -1,54 +1,18 @@
 cache: pip
-
-matrix:
-  include:
-    - language: python
-      python: "2.7"
-      env: TOXENV=py27
-
-    - language: python
-      python: "3.4"
-      env: TOXENV=py34
-
-    - language: python
-      python: "3.5"
-      env: TOXENV=py35
-
-    - language: python
-      python: "3.6"
-      env: TOXENV=py36
-
-    - language: python
-      python: "3.4"
-      env: TOXENV=pep8
+language: python
+python: "3.6"
 
 install:
-    - pip install tox
-    - if [ "$TOXENV" = 'py35' ]; then pip install coveralls; fi
+  - pip install '.[test]'
+
 script:
-    - tox -e $TOXENV
-after_success:
-    - if [ "$TOXENV" = 'py35' ]; then coveralls; fi
-#
-# Activate this after the repository has been added to travis.
-# If enabled, travis will automatically upload eggs to pypi every time
-# a tagged commit is encountered.
-#
-# To add the pypi password use this:
-#
-# gem install travis
-# travis encrypt --repo seantis/spare
-#
-# Then replace 'encrypted...' below with the new encryption string (no need to
-# copy the quotes).
-#
-# deploy:
-#     provider: pypi
-#     distributions: "sdist bdist_wheel"
-#     user: seantis
-#     password:
-#       secure: encrypted...
-#     on:
-#         tags: true
-#         condition: $TOXENV = py35
-#
+  - py.test
+
+deploy:
+  provider: pypi
+  distributions: "sdist bdist_wheel"
+  user: seantis
+  password:
+    secure: "ZXgB1iOJ065jg7yJq4EUzGZdIi4p/YL8Mj9Wbm+2gznSaW01PU7X/N1i7mtS0XV8MoILmNfyQKCVL+K0eNTFiYxihuiKP4mJPUVVEtnWnOhKlmGl5tXHmONNjHuJ73KWPoBteqoAeOvAY0Ij63wez5ROpahR89rcz/UGTV56lJBXHUEQ4XEdDfeNf1q3URUGXZVVWX4HLnL6XXLA1acmEICnorKP5/UsLRzXwtyOcPMWyTBVEh6Qlil2zOtIRCrujVVZPTNwSaJZRBrYcDVYO8+MxmtQuFQgV2UkL7fqmA4t+yNlIlHeuzcxXBgbodtLkkYCwyuYz3+FBnE9Sv6a1rrDNneW68O8s0DgDXK0ziYct98h1h73LC8ZOlFapil4u0tKAgglJHZwMqCJQ4vy12JoeI0Etv26Ks3YHfkkP9RArlXGQFz3elOYYu3HNwBf1/sSfec7pK5wZZ/avtj9zpDcD8/fKL3jpsiVG2gPf1CuGPVjUFZ5h+kw5rN9M8rXit+H5+r3fCAK1kNMCAFlwXxANRVMEHAL/yArionib+1D0TZmWVvrrNOCjmCeo50JS9b4wbCkZExOjqA0SG+7jUAvZ28BBXNHWAIlHfV7qPnvxWtt6tuwP7gAlQAIq2I5akadTduvPhevUWwt/NDUREPw9a0Cdzx502fu/9M9itc="
+  on:
+    tags: true
