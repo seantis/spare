@@ -55,3 +55,10 @@ class TargetPathNotEmpty(SpareError):
 
     def __init__(self, path):
         self.path = path
+
+
+class BucketNotLockedError(SpareError):
+    """ Raised when a bucket was expected to be locked, but was not. """
+
+    def __init__(self, bucket):
+        self.bucket = bucket

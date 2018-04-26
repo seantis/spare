@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from spare.block import DEFAULT_BLOCK, AVAILABLE_BLOCKS
 from spare.errors import BucketAlreadyLockedError
+from spare.errors import BucketNotLockedError
 from spare.errors import ExistingPrefixError
 from spare.errors import InvalidPrefixError
 from spare.utils import read_in_chunks
@@ -69,6 +70,10 @@ class Envoy(object):
         if self.is_known_prefix('.lock'):
             self.bucket.objects.filter(Prefix='.lock').delete()
 
+    def ensure_locked(self):
+        if not self.locked:
+            raise BucketNotLockedError(self.bucket_name)
+
     def ensure_bucket_exists(self):
         if not self.bucket.creation_date:
             self.bucket.create()
@@ -117,11 +122,12 @@ class Envoy(object):
                 yield self.extract_prefix(key)
 
     def delete(self, prefix):
+        self.ensure_locked()
         self.ensure_valid_prefix(prefix)
         self.bucket.objects.filter(Prefix=prefix).delete()
 
     def send(self, prefix, fileobj, before_encrypt=None):
-        self.ensure_bucket_exists()
+        self.ensure_locked()
         self.ensure_valid_prefix(prefix)
         self.ensure_prefix_unknown(prefix)
 
