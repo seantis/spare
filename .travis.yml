@@ -2,10 +2,11 @@ cache: pip
 language: python
 python: "3.6"
 
+before_install:
+  - pip list --outdated --disable-pip-version-check --format freeze |  cut -d '=' -f1 | xargs -n1 pip install --upgrade
+
 install:
-  - pip install '.[test]'
-  - pip install --upgrade pytest
-  - pip install --upgrade coverage
+  - pip install -e '.[test]'
 
 script:
   - py.test
