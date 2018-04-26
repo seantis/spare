@@ -2,6 +2,7 @@ import pytest
 
 from io import BytesIO
 from spare.errors import FileChangedBeforeUploadError
+from spare.errors import SnapshotMismatchError
 from spare.errors import PruneToZeroError
 from spare.inventory import Inventory
 from spare.snapshot import SnapshotCollection
@@ -142,3 +143,24 @@ def test_validate(envoy, temporary_path, loghandler):
     assert 'but got' in log
     assert 'is missing' in log
     assert 'is unknown' in log
+
+
+def test_owner_mismatch(envoy, temporary_path):
+    (temporary_path / 'foo').mkdir()
+    (temporary_path / 'bar').mkdir()
+
+    foo = Inventory(temporary_path / 'foo')
+    foo.scan()
+
+    bar = Inventory(temporary_path / 'bar')
+    bar.scan()
+
+    snapshot = SnapshotCollection(envoy).create()
+    snapshot.backup(foo)
+
+    with pytest.raises(SnapshotMismatchError):
+        snapshot.backup(bar)
+
+    with pytest.raises(SnapshotMismatchError):
+        snapshot = SnapshotCollection(envoy).create()
+        snapshot.backup(bar)

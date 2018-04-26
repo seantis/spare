@@ -21,6 +21,8 @@ This is what you need to know:
 
 * Duplicated files are stored only once.
 
+* Each hostname must have a separate bucket for each backed up path.
+
 * If you forget your password, you cannot restore your files.
 
 * Python 3.6.2+ is required.

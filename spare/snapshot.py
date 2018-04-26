@@ -5,6 +5,7 @@ from io import BytesIO
 from spare import log
 from spare.errors import FileChangedBeforeUploadError
 from spare.errors import PruneToZeroError
+from spare.errors import SnapshotMismatchError
 from spare.inventory import hash_implementation
 from spare.utils import abort_if_file_changes_during_read
 
@@ -97,11 +98,42 @@ class Snapshot(object):
 
         return cls(envoy, prefix, meta)
 
+    @property
+    def neighbours(self):
+        collection = SnapshotCollection(self.envoy)
+        collection.load()
+
+        for snapshot in collection.snapshots:
+            if snapshot.prefix != self.prefix:
+                yield snapshot
+
+    def ensure_identity_match(self, inventory):
+        """ Each inventory we backup has an identity associated with it
+        (hostname + path). When creating a new snapshot we ensure that
+        this identity matches, because we want each hostname/path combination
+        to be stored in a separate bucket.
+
+        """
+        if 'identity' in self.meta:
+            if self.meta['identity'] != inventory.identity:
+                raise SnapshotMismatchError(
+                    expected=inventory.identity,
+                    found=self.meta['identity']
+                )
+
+        for snapshot in self.neighbours:
+            if snapshot.meta['identity'] != inventory.identity:
+                raise SnapshotMismatchError(
+                    expected=inventory.identity,
+                    found=snapshot.meta['identity']
+                )
+
     def backup(self, inventory):
         """ Backup the given inventory. """
 
         log.info(f"Backing up {inventory.path}")
 
+        self.ensure_identity_match(inventory)
         uploaded = set(self.envoy.prefixes())
 
         for digest, paths in inventory.files.items():
@@ -123,6 +155,7 @@ class Snapshot(object):
 
         self.meta['files'] = inventory.files
         self.meta['structure'] = inventory.structure
+        self.meta['identity'] = inventory.identity
 
         self.save()
 

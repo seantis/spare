@@ -62,3 +62,14 @@ class BucketNotLockedError(SpareError):
 
     def __init__(self, bucket):
         self.bucket = bucket
+
+
+class SnapshotMismatchError(SpareError):
+    """ Raised when snapshot is attempted on a bucket which has snapshots
+    from a different host/path on it.
+
+    """
+
+    def __init__(self, expected, found):
+        self.expected = expected
+        self.found = found

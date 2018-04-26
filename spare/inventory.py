@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import os.path
+import platform
 import pwd
 import stat
 
@@ -128,6 +129,10 @@ class Inventory(object):
         self.path = Path(path)
         self.structure = {}
         self.files = defaultdict(list)
+
+    @property
+    def identity(self):
+        return f'{platform.node()}:{self.path}'
 
     @cached_property
     def users(self):
