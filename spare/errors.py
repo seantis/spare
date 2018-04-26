@@ -73,3 +73,10 @@ class SnapshotMismatchError(SpareError):
     def __init__(self, expected, found):
         self.expected = expected
         self.found = found
+
+
+class BucketOtherwiseUsedError(SpareError):
+    """ Raised when the bucket is not managed by spare. """
+
+    def __init__(self, bucket):
+        self.bucket = bucket

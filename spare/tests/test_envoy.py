@@ -6,6 +6,7 @@ from spare.block import AVAILABLE_BLOCKS
 from spare.envoy import Envoy
 from spare.errors import BucketAlreadyLockedError
 from spare.errors import BucketNotLockedError
+from spare.errors import BucketOtherwiseUsedError
 from spare.errors import ExistingPrefixError
 from spare.errors import InvalidPrefixError
 
@@ -132,3 +133,13 @@ def test_lock_enforced(s3):
 
     with pytest.raises(BucketNotLockedError):
         Envoy(s3, 'bucket', 'password').send('foo', BytesIO())
+
+
+def test_envoy_fail_on_foreign_buckets(s3):
+    bucket = Envoy(s3, 'bucket', 'password').bucket
+    bucket.create()
+    bucket.upload_fileobj(BytesIO(b'foo'), 'bar')
+
+    with pytest.raises(BucketOtherwiseUsedError):
+        with Envoy(s3, 'bucket', 'password'):
+            pass

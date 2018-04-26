@@ -13,6 +13,10 @@ This is what you need to know:
 
 * Spare should not be used in production yet! **Use at your own risk.**
 
+* Buckets should be managed by spare exclusively, other files are deleted!
+
+* Each hostname must have a separate bucket for each backed up path.
+
 * Spare stores exactly one copy of your data.
 
 * Files are compressed using LZMA and encrypted on the client using AES-SIV.
@@ -21,9 +25,9 @@ This is what you need to know:
 
 * Duplicated files are stored only once.
 
-* Each hostname must have a separate bucket for each backed up path.
-
 * If you forget your password, you cannot restore your files.
+
+* Spare is meant to be used with configuration management, the cli is minimal.
 
 * Python 3.6.2+ is required.
 

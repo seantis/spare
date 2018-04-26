@@ -6,6 +6,7 @@ from io import BytesIO
 from spare.block import DEFAULT_BLOCK, AVAILABLE_BLOCKS
 from spare.errors import BucketAlreadyLockedError
 from spare.errors import BucketNotLockedError
+from spare.errors import BucketOtherwiseUsedError
 from spare.errors import ExistingPrefixError
 from spare.errors import InvalidPrefixError
 from spare.utils import read_in_chunks
@@ -55,6 +56,7 @@ class Envoy(object):
 
     def lock(self):
         self.ensure_bucket_exists()
+        self.ensure_bucket_is_ours()
 
         if self.locked:
             raise BucketAlreadyLockedError(self.bucket_name)
@@ -77,6 +79,13 @@ class Envoy(object):
     def ensure_bucket_exists(self):
         if not self.bucket.creation_date:
             self.bucket.create()
+
+            with BytesIO(b'https://github.com/seantis/spare') as f:
+                self.bucket.upload_fileobj(f, '.spare')
+
+    def ensure_bucket_is_ours(self):
+        if not self.is_known_prefix('.spare'):
+            raise BucketOtherwiseUsedError(self.bucket_name)
 
     def ensure_prefix_unknown(self, prefix):
         if self.is_known_prefix(prefix):
