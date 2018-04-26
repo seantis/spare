@@ -1,2 +1,3 @@
 [report]
 omit = spare/tests/*
+show_missing = True
