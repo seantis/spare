@@ -212,7 +212,9 @@ class Inventory(object):
         if stat.S_ISCHR(status.st_mode):
             log.warn(f"Skipping character special device {path}")
 
-        elif stat.S_ISBLK(status.st_mode):
+        # we can't cover this on Travis currently as we don't have access to
+        # a block device and can't create one without sudo
+        elif stat.S_ISBLK(status.st_mode):  # pragma: no cover
             log.warn(f"Skipping block special device {path}")
 
         elif stat.S_ISFIFO(status.st_mode):
