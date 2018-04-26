@@ -43,7 +43,7 @@ class Envoy(object):
         self.block_class = AVAILABLE_BLOCKS[DEFAULT_BLOCK]
 
         # you should not change these values outside of unit tests!
-        self.blocksize = 1048576  # 1 MiB
+        self.blocksize = 1_048_576  # found to be good value through testing
         self.noncesize = 16
 
     def __enter__(self):
