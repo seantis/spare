@@ -93,9 +93,12 @@ def test_ignore_devices():
     # if we can scan /dev without errors we handle all the special devices
     inventory = Inventory('/dev')
 
+    # try a bunch of folders to really get all kinds of devices
     # no need to do this recursively (which might not be a great idea)
-    with suppress(FileNotFoundError):
-        inventory.scan_directory(Path('/dev'), recurse=False)
+
+    for path in ('/dev', '/dev/block', '/dev/disk/by-uuid'):
+        with suppress(FileNotFoundError):
+            inventory.scan_directory(Path(path), recurse=False)
 
 
 def test_read_outside_symlink(temporary_path):
