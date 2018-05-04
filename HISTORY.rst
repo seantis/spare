@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+0.1.1 (2018-05-04)
+~~~~~~~~~~~~~~~~~~~~~
+
 - Lowers the number of requests needed to upload data.
   [href]
 
