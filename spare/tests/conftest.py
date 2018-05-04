@@ -5,6 +5,7 @@ import secrets
 import sys
 import tempfile
 
+from botocore.client import Config
 from boto3 import resource
 from mirakuru import HTTPExecutor
 from pathlib import Path
@@ -35,12 +36,23 @@ def endpoint(minio):
 
 @pytest.fixture(scope='function')
 def s3(access_key, secret_key, endpoint, minio_path):
+
+    # minio has some concurrency problems with locks which compound if we
+    # use the default connection setup which includes lots of retries and
+    # big timeouts
+    config = Config(
+        connect_timeout=1,
+        read_timeout=1,
+        retries={'max_attempts': 3}
+    )
+
     s3 = resource(
         service_name='s3',
         use_ssl=False,
         endpoint_url=endpoint.geturl(),
         aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key)
+        aws_secret_access_key=secret_key,
+        config=config)
 
     yield s3
 

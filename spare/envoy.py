@@ -47,6 +47,10 @@ class Envoy(object):
         self.blocksize = 1_048_576  # found to be good value through testing
         self.noncesize = 16
 
+        # as long as an envoy is locked, we have exclusive access and can
+        # therefore keep track of the known prefixes ourselves
+        self._known_prefixes = None
+
     def __enter__(self):
         self.lock()
         return self
@@ -61,8 +65,11 @@ class Envoy(object):
         if self.locked:
             raise BucketAlreadyLockedError(self.bucket_name)
 
+        self._known_prefixes = set(self.prefixes())
+
         with BytesIO() as f:
             self.bucket.upload_fileobj(f, '.lock')
+            self.on_store_prefix('.lock')
 
     @property
     def locked(self):
@@ -71,6 +78,8 @@ class Envoy(object):
     def unlock(self):
         if self.is_known_prefix('.lock'):
             self.bucket.objects.filter(Prefix='.lock').delete()
+            self.on_delete_prefix('.lock')
+            self._known_prefixes = None
 
     def ensure_locked(self):
         if not self.locked:
@@ -115,10 +124,21 @@ class Envoy(object):
         return '1-' in key
 
     def is_known_prefix(self, prefix):
+        if self._known_prefixes is not None:
+            return prefix in self._known_prefixes
+
         for obj in self.bucket.objects.filter(Prefix=prefix, MaxKeys=1):
             return True
 
         return False
+
+    def on_store_prefix(self, prefix):
+        if self._known_prefixes is not None:
+            self._known_prefixes.add(prefix)
+
+    def on_delete_prefix(self, prefix):
+        if self._known_prefixes is not None:
+            self._known_prefixes.remove(prefix)
 
     def keys(self, prefix=None):
         for obj in self.bucket.objects.filter(Prefix=prefix or ''):
@@ -134,6 +154,7 @@ class Envoy(object):
         self.ensure_locked()
         self.ensure_valid_prefix(prefix)
         self.bucket.objects.filter(Prefix=prefix).delete()
+        self.on_delete_prefix(prefix)
 
     def send(self, prefix, fileobj, before_encrypt=None):
         self.ensure_locked()
@@ -167,6 +188,8 @@ class Envoy(object):
                 block_name = f'{prefix}/{n:0>9}-{nonce}'
 
                 executor.submit(upload_block, block_name, block)
+
+        self.on_store_prefix(prefix)
 
     def recv(self, prefix, fileobj, after_decrypt=None):
         self.ensure_valid_prefix(prefix)
