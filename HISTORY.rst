@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Adds the ability to exclude files from the backup.
+  [href]
+
 0.1.2 (2018-05-10)
 ~~~~~~~~~~~~~~~~~~~~~
 

@@ -192,3 +192,35 @@ def test_ignore_socket_file(temporary_path):
 
     assert not inventory.structure
     assert not inventory.files
+
+
+def test_skip_files(temporary_path):
+    (temporary_path / 'foo').mkdir()
+    (temporary_path / 'foo' / 'bar').touch()
+    (temporary_path / 'bar').mkdir()
+    (temporary_path / 'bar' / 'bar').touch()
+
+    inventory = Inventory(temporary_path, skip=('./foo', ))
+    inventory.scan()
+
+    assert set(inventory.structure.keys()) == {
+        'bar',
+        'bar/bar',
+    }
+
+    inventory = Inventory(temporary_path, skip=('./bar', ))
+    inventory.scan()
+
+    assert set(inventory.structure.keys()) == {
+        'foo',
+        'foo/bar',
+    }
+
+    inventory = Inventory(temporary_path, skip=('./foo/bar', ))
+    inventory.scan()
+
+    assert set(inventory.structure.keys()) == {
+        'bar',
+        'bar/bar',
+        'foo',
+    }

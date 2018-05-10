@@ -5,8 +5,8 @@ from spare.recovery import Recovery
 from spare.snapshot import SnapshotCollection
 
 
-def create(path, s3, bucket, password, keep=1):
-    inventory = Inventory(path)
+def create(path, s3, bucket, password, keep=1, skip=None):
+    inventory = Inventory(path, skip)
     inventory.scan()
 
     with Envoy(s3, bucket, password) as envoy:

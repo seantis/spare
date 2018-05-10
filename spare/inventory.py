@@ -5,6 +5,7 @@ import os
 import os.path
 import platform
 import pwd
+import re
 import stat
 
 from cached_property import cached_property
@@ -125,10 +126,20 @@ class Inventory(object):
 
     """
 
-    def __init__(self, path):
+    def __init__(self, path, skip=None):
         self.path = Path(path)
         self.structure = {}
         self.files = defaultdict(list)
+
+        if skip:
+            skip = (skip, ) if isinstance(skip, str) else skip
+
+            paths = '|'.join(p.lstrip('./') for p in skip)
+            paths = re.compile(rf'({paths})')
+
+            self.skip = paths
+        else:
+            self.skip = None
 
     @property
     def identity(self):
@@ -206,6 +217,10 @@ class Inventory(object):
                 extra = self.scan_entry(entry)
 
     def scan_entry(self, entry):
+
+        if self.skip and self.skip.match(str(self.relative_path(entry))):
+            return None
+
         if isinstance(entry, os.DirEntry):
             status = entry.stat(follow_symlinks=False)
         else:

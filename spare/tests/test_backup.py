@@ -38,6 +38,19 @@ def test_create(s3, temporary_path):
     assert len(prefixes) == 2
 
 
+def test_create_exclude(s3, temporary_path):
+    envoy = Envoy(s3, 'my-bucket', 'password')
+
+    with (temporary_path / 'foo').open('w') as f:
+        f.write('foo')
+
+    with (temporary_path / 'bar').open('w') as f:
+        f.write('bar')
+
+    create(temporary_path, s3, 'my-bucket', 'password', skip=('./foo'))
+    assert len(set(envoy.prefixes())) == 2
+
+
 def test_large_file(s3):
     content = secrets.token_bytes(1024*1024)
 
