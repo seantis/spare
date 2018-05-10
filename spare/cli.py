@@ -3,6 +3,7 @@ import pdb
 import sys
 import traceback
 
+from botocore.client import Config
 from boto3 import resource
 from logbook import StreamHandler
 from spare.backup import create, restore, validate
@@ -30,7 +31,12 @@ def s3_client(endpoint, access_key, secret_key):
         service_name='s3',
         endpoint_url=endpoint,
         aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key)
+        aws_secret_access_key=secret_key,
+        config=Config(
+            connect_timeout=5,
+            read_timeout=5,
+            retries={'max_attempts': 2}
+        ))
 
 
 @click.group()

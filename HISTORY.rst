@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Lowers the timeouts and retry rates.
+  [href]
+
 0.1.1 (2018-05-04)
 ~~~~~~~~~~~~~~~~~~~~~
 
