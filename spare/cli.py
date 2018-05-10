@@ -3,10 +3,9 @@ import pdb
 import sys
 import traceback
 
-from botocore.client import Config
-from boto3 import resource
 from logbook import StreamHandler
 from spare.backup import create, restore, validate
+from spare.utils import s3_client
 
 
 VALID_PATH = click.Path(exists=True, file_okay=False)
@@ -22,21 +21,6 @@ def enable_post_mortem_debugging():  # pragma: no cover
             pdb.post_mortem(tb)
 
     sys.excepthook = hook
-
-
-def s3_client(endpoint, access_key, secret_key):
-    endpoint = '://' in endpoint and endpoint or f'https://{endpoint}'
-
-    return resource(
-        service_name='s3',
-        endpoint_url=endpoint,
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-        config=Config(
-            connect_timeout=5,
-            read_timeout=5,
-            retries={'max_attempts': 2}
-        ))
 
 
 @click.group()

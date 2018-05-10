@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Increases the download speed during restore operations.
+  [href]
+
 - Shows a warning when a user/group could not be found during restore.
   [href]
 

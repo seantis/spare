@@ -8,7 +8,6 @@ from spare.envoy import Envoy
 from spare.errors import TargetPathNotEmpty
 from spare.snapshot import SnapshotCollection
 from tempfile import TemporaryDirectory
-from unittest import mock
 
 
 def test_create(s3, temporary_path):
@@ -157,13 +156,6 @@ def test_restore_complex_hardlinks_case(s3):
 
             assert inode not in inodes
             inodes.add(inode)
-
-    # ensure that this setup only results in a single download
-    with mock.patch('spare.download.DownloadManager.fetch') as m:
-        with TemporaryDirectory() as d:
-            restore(Path(d), s3, 'my-bucket', 'password')
-
-    assert m.call_count == 1
 
 
 def test_restore_previous_snapshot(s3):

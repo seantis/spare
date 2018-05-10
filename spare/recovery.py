@@ -7,7 +7,8 @@ from itertools import groupby
 from pathlib import Path
 from spare import log, FOLLOW_SYMLINKS
 from spare.errors import TargetPathNotEmpty
-from spare.download import Download, DownloadManager
+from spare.download import Download, DownloadProcess
+from multiprocessing import cpu_count, Queue
 
 
 class Recovery(object):
@@ -85,14 +86,35 @@ class Recovery(object):
         def by_inode(paths):
             return groupby(sorted(paths, key=inode), key=inode)
 
-        with DownloadManager(self.envoy) as download_manager:
-            for digest, paths in self.snapshot.meta['files'].items():
-                download = Download(prefix=digest, digest=digest)
+        queue = Queue()
 
-                log.info(f"Downloading {paths[0]}")
+        processes = tuple(
+            DownloadProcess(
+                endpoint=self.envoy.s3.endpoint,
+                access_key=self.envoy.s3.access_key,
+                secret_key=self.envoy.s3.secret_key,
+                bucket=self.envoy.bucket_name,
+                password=self.envoy.password,
+                queue=queue
+            ) for _ in range(cpu_count())
+        )
 
-                for _, paths in by_inode(paths):
-                    path, *rest = (target / p for p in paths)
-                    download.to(path, hardlinks=rest)
+        for process in processes:
+            process.start()
 
-                download_manager.queue(download)
+        for digest, paths in self.snapshot.meta['files'].items():
+            download = Download(prefix=digest, digest=digest)
+
+            log.info(f"Downloading {paths[0]}")
+
+            for _, paths in by_inode(paths):
+                path, *rest = (target / p for p in paths)
+                download.to(path, hardlinks=rest)
+
+            queue.put(download)
+
+        for process in processes:
+            queue.put(None)
+
+        for process in processes:
+            process.join()

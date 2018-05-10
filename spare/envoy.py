@@ -1,6 +1,7 @@
 import re
 import secrets
 
+from boto3.s3.transfer import TransferConfig
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from spare.block import DEFAULT_BLOCK, AVAILABLE_BLOCKS
@@ -50,6 +51,9 @@ class Envoy(object):
         # as long as an envoy is locked, we have exclusive access and can
         # therefore keep track of the known prefixes ourselves
         self._known_prefixes = None
+
+        # disable threads as we manage our own
+        self.transfer_config = TransferConfig(use_threads=False)
 
     def __enter__(self):
         self.lock()
@@ -138,7 +142,7 @@ class Envoy(object):
 
     def on_delete_prefix(self, prefix):
         if self._known_prefixes is not None:
-            self._known_prefixes.remove(prefix)
+            self._known_prefixes.discard(prefix)
 
     def keys(self, prefix=None):
         for obj in self.bucket.objects.filter(Prefix=prefix or ''):
@@ -174,7 +178,8 @@ class Envoy(object):
         # enough)
         def upload_block(name, block):
             with BytesIO(block.data) as buffer:
-                self.bucket.upload_fileobj(buffer, name)
+                self.bucket.upload_fileobj(
+                    buffer, name, Config=self.transfer_config)
 
         with ThreadPoolExecutor() as executor:
             for n, chunk in enumerate(chunks, start=1):
@@ -198,7 +203,8 @@ class Envoy(object):
             nonce = self.extract_nonce(obj.key)
 
             with BytesIO() as buffer:
-                self.bucket.download_fileobj(obj.key, buffer)
+                self.bucket.download_fileobj(
+                    obj.key, buffer, Config=self.transfer_config)
 
                 buffer.seek(0)
                 block = self.spawn_block(nonce, buffer.read())

@@ -1,9 +1,14 @@
 import os
+import random
 import shutil
 
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Process
 from spare import log, FOLLOW_SYMLINKS
+from spare.envoy import Envoy
 from spare.inventory import hash_implementation
+from spare.utils import s3_client, writable
+from time import sleep
 
 
 class Download(object):
@@ -51,6 +56,36 @@ class Download(object):
         self.targets.append((path, *hardlinks))
 
 
+class DownloadProcess(Process):
+    """ Runs a download manager in a separate process and queues downloads
+    using a DownloadManager in multiple threads.
+
+    """
+
+    def __init__(self, endpoint, access_key, secret_key,
+                 bucket, password, queue):
+
+        Process.__init__(self)
+
+        self.queue = queue
+        self.s3 = s3_client(endpoint, access_key, secret_key)
+        self.envoy = Envoy(self.s3, bucket, password)
+
+    def run(self):
+        with DownloadManager(self.envoy) as manager:
+            while True:
+                download = self.queue.get()
+
+                if not download:
+                    break
+
+                manager.queue(download)
+
+                # sleep randomly to ensure that multiple processes
+                # read equally from the shared queue
+                sleep(random.uniform(0, 0.1))
+
+
 class DownloadManager(object):
     """ Takes download objects and downloads them using a threadpool executor.
 
@@ -71,23 +106,28 @@ class DownloadManager(object):
 
     def __init__(self, envoy):
         self.envoy = envoy
-        self.executor = ThreadPoolExecutor()
+        self.executor = ThreadPoolExecutor(max_workers=4)
+        self.results = []
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
+        for future in self.results:
+            future.result()
+
         self.executor.shutdown(wait=True)
 
     def queue(self, download):
-        self.executor.submit(self.fetch, download)
+        self.results.append(self.executor.submit(self.fetch, download))
 
     def fetch(self, download):
         m = hash_implementation()
         genesis = download.targets[0][0]
 
-        with open(genesis, 'wb') as f:
-            self.envoy.recv(download.prefix, f, after_decrypt=m.update)
+        with writable(genesis):
+            with open(genesis, 'wb') as f:
+                self.envoy.recv(download.prefix, f, after_decrypt=m.update)
 
         # the following branch is actually covered, but coverage.py does not
         # consider it as such - I've tried all the tricks in the book and it
