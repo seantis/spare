@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+0.1.2 (2018-05-10)
+~~~~~~~~~~~~~~~~~~~~~
+
 - Increases the download speed during restore operations.
   [href]
 
