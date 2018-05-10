@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Shows a warning when a user/group could not be found during restore.
+  [href]
+
 - Lowers the timeouts and retry rates.
   [href]
 

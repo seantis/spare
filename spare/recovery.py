@@ -67,8 +67,11 @@ class Recovery(object):
             else:
                 raise NotImplementedError  # pragma: no cover
 
-            uid = self.uids[status['user']]
-            gid = self.gids[status['group']]
+            uid = self.uids.get(status['user'], -1)
+            gid = self.gids.get(status['group'], -1)
+
+            uid == -1 and log.warn(f"Unknown owner {status['user']}: {path}")
+            gid == -1 and log.warn(f"Unknown group {status['group']}: {path}")
 
             os.chmod(path, status['mode'], **FOLLOW_SYMLINKS)
             os.chown(path, uid, gid, **FOLLOW_SYMLINKS)
