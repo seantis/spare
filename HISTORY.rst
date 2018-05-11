@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+- Adds the inode to the snapshot identity to ensure that a newly setup host
+  doesn't overwrite existing backups.
+  [href]
+
 0.1.3 (2018-05-10)
 ~~~~~~~~~~~~~~~~~~~~~
 

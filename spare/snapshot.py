@@ -128,12 +128,12 @@ class Snapshot(object):
                     found=snapshot.meta['identity']
                 )
 
-    def backup(self, inventory):
+    def backup(self, inventory, force=False):
         """ Backup the given inventory. """
 
         log.info(f"Backing up {inventory.path}")
 
-        self.ensure_identity_match(inventory)
+        force or self.ensure_identity_match(inventory)
         uploaded = set(self.envoy.prefixes())
 
         for digest, paths in inventory.files.items():

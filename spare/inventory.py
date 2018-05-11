@@ -143,7 +143,7 @@ class Inventory(object):
 
     @property
     def identity(self):
-        return f'{platform.node()}:{self.path}'
+        return f'{platform.node()}:{self.path}:{self.path.stat().st_ino}'
 
     @cached_property
     def users(self):

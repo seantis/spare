@@ -5,7 +5,7 @@ import pytest
 from pathlib import Path
 from spare.backup import create, restore, validate
 from spare.envoy import Envoy
-from spare.errors import TargetPathNotEmpty
+from spare.errors import TargetPathNotEmpty, SnapshotMismatchError
 from spare.snapshot import SnapshotCollection
 from tempfile import TemporaryDirectory
 
@@ -239,3 +239,23 @@ def test_validate(s3, temporary_path):
         envoy.delete(next(envoy.prefixes()))
 
     assert not validate(s3, 'my-bucket', 'password')
+
+
+def test_force_backup(s3, temporary_path):
+    (temporary_path / 'foo').mkdir()
+    (temporary_path / 'foo' / 'bar').touch()
+
+    create(temporary_path / 'foo', s3, 'my-bucket', 'password')
+
+    (temporary_path / 'foo' / 'bar').unlink()
+    (temporary_path / 'foo').rmdir()
+
+    (temporary_path / 'foo').mkdir()
+    (temporary_path / 'foo' / 'bar').touch()
+
+    # the inode has changed
+    with pytest.raises(SnapshotMismatchError):
+        create(temporary_path / 'foo', s3, 'my-bucket', 'password')
+
+    create(temporary_path / 'foo', s3, 'my-bucket', 'password', force=True)
+    create(temporary_path / 'foo', s3, 'my-bucket', 'password')

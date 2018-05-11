@@ -42,10 +42,12 @@ def cli(ctx, pdb, verbose):  # pragma: no cover
 @click.option('--password', envvar='SPARE_PASSWORD', required=True)
 @click.option('--bucket', envvar='SPARE_BUCKET', required=True)
 @click.option('--path', envvar='SPARE_PATH', type=VALID_PATH, required=True)
+@click.option('--force', default=False, required=False)
 @click.option('--skip', multiple=True, required=False)
-def create_cli(endpoint, access_key, secret_key, path, password, bucket, skip):
+def create_cli(endpoint, access_key, secret_key, path,
+               password, bucket, skip, force):
     s3 = s3_client(endpoint, access_key, secret_key)
-    create(path, s3, bucket, password, skip=skip or None)
+    create(path, s3, bucket, password, skip=skip or None, force=force)
 
 
 @cli.command(name='restore')
