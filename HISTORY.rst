@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Changes '--force' into a flag.
+  [href]
+
 0.2.0 (2018-05-11)
 ~~~~~~~~~~~~~~~~~~~~~
 
