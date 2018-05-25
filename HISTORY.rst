@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+0.2.1 (2018-05-25)
+~~~~~~~~~~~~~~~~~~~~~
+
 - Delay sigterm handling during backup and restore operations.
   [href]
 
