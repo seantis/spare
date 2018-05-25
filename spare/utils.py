@@ -1,10 +1,13 @@
 import os
+import signal
 import stat
 
 from boto3 import resource
 from botocore.client import Config
 from contextlib import contextmanager
+from logbook import SyslogHandler
 from pathlib import Path
+from spare import log
 from spare.errors import FileChangedDuringReadError
 
 
@@ -75,3 +78,40 @@ def writable(path):
         yield
 
         os.chmod(path, mode)
+
+
+class delay_signal(object):
+    """ Blocks the handling of the given signal inside the with statement.
+    Once the with statement is exited, the last received signal is replayed.
+
+    This basically stops the user from restarting a server which is currently
+    running a backup or restore operation.
+
+    A message is sent to the syslog if this happens.
+
+    Usage:
+
+        with delay_signal(SIGTERM, 'doing something important'):
+            pass
+
+    """
+
+    def __init__(self, signal, message):
+        self.signal = signal
+        self.message = message
+
+    def __enter__(self):
+        self.received = None
+        self.previous = signal.signal(self.signal, self.handler)
+
+    def handler(self, signal, frame):
+        self.received = (signal, frame)
+
+        with SyslogHandler('spare', level='WARNING').applicationbound():
+            log.warn(f"Delaying handling of {self.signal.name}")
+
+    def __exit__(self, type, value, traceback):
+        signal.signal(self.signal, self.previous)
+
+        if self.received:
+            self.previous(*self.received)

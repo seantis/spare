@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Delay sigterm handling during backup and restore operations.
+  [href]
+
 - Changes '--force' into a flag.
   [href]
 
