@@ -229,7 +229,7 @@ class Inventory(object):
         path = entry.__fspath__()
         scan_also = None
 
-        if stat.S_ISCHR(status.st_mode):
+        if stat.S_ISCHR(status.st_mode):  # pragma: no cover
             log.warn(f"Skipping character special device {path}")
 
         # we can't cover this on Travis currently as we don't have access to

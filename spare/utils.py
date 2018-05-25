@@ -80,7 +80,8 @@ def writable(path):
         os.chmod(path, mode)
 
 
-class delay_signal(object):
+# coverage is skipped here because it is tested in a subprocess
+class delay_signal(object):  # pragma: no cover
     """ Blocks the handling of the given signal inside the with statement.
     Once the with statement is exited, the last received signal is replayed.
 
@@ -111,7 +112,7 @@ class delay_signal(object):
             with SyslogHandler('spare', level='WARNING').applicationbound():
                 log.warn(f"Delaying handling of {self.signal.name}")
         except IOError:
-            pass  # pragma: no cover
+            pass
 
     def __exit__(self, type, value, traceback):
         signal.signal(self.signal, self.previous)
