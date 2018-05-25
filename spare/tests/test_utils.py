@@ -1,3 +1,4 @@
+import os
 import pytest
 import signal
 
@@ -42,26 +43,29 @@ def test_delay_signal():
     class Normal(Process):
         def run(self):
             for i in range(0, 100):
-                sleep(0.01)
+                sleep(0.05)
 
     class Delayed(Process):
         def run(self):
             with utils.delay_signal(signal.SIGTERM, 'busy'):
                 for i in range(0, 100):
-                    sleep(0.01)
+                    sleep(0.05)
 
     # the normal process exits immedately
     process = Normal()
     process.start()
-    sleep(0.1)
-    process.terminate()
+    sleep(0.5)
+    os.kill(process.pid, signal.SIGTERM)
     sleep(0.1)
     assert not process.is_alive()
 
     # the other process exits when it's done
     process = Delayed()
     process.start()
-    sleep(0.1)
-    process.terminate()
+    sleep(0.5)
+    os.kill(process.pid, signal.SIGTERM)
     sleep(0.1)
     assert process.is_alive()
+
+    # stop the test
+    os.kill(process.pid, signal.SIGKILL)

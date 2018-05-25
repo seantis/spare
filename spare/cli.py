@@ -49,7 +49,7 @@ def create_cli(endpoint, access_key, secret_key, path,
                password, bucket, skip, force):
     s3 = s3_client(endpoint, access_key, secret_key)
 
-    with delay_signal(SIGTERM, 'creating backup'):
+    with delay_signal(SIGTERM, None):
         create(path, s3, bucket, password, skip=skip or None, force=force)
 
 
@@ -63,7 +63,7 @@ def create_cli(endpoint, access_key, secret_key, path,
 def restore_cli(endpoint, access_key, secret_key, path, password, bucket):
     s3 = s3_client(endpoint, access_key, secret_key)
 
-    with delay_signal(SIGTERM, 'restoring backup'):
+    with delay_signal(SIGTERM, None):
         restore(path, s3, bucket, password)
 
 

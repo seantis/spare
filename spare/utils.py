@@ -107,8 +107,11 @@ class delay_signal(object):
     def handler(self, signal, frame):
         self.received = (signal, frame)
 
-        with SyslogHandler('spare', level='WARNING').applicationbound():
-            log.warn(f"Delaying handling of {self.signal.name}")
+        try:
+            with SyslogHandler('spare', level='WARNING').applicationbound():
+                log.warn(f"Delaying handling of {self.signal.name}")
+        except IOError:
+            pass  # pragma: no cover
 
     def __exit__(self, type, value, traceback):
         signal.signal(self.signal, self.previous)

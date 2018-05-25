@@ -9,7 +9,7 @@ install:
   - pip install -e '.[test]'
 
 script:
-  - py.test
+  - py.test -s
 
 deploy:
   provider: pypi
