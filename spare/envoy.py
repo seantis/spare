@@ -13,6 +13,13 @@ from spare.errors import InvalidPrefixError
 from spare.utils import read_in_chunks
 
 
+def padded(n):
+    return f'{n:0>9}'
+
+
+FIRST_BLOCK_MARKER = f'/{padded(1)}-'
+
+
 class Envoy(object):
     """ Provides the bridge between an unencrypted local file and a remote file
     encrypted in chunks.
@@ -125,7 +132,7 @@ class Envoy(object):
         return key.split('/')[0]
 
     def is_first_block(self, key):
-        return '1-' in key
+        return FIRST_BLOCK_MARKER in key
 
     def is_known_prefix(self, prefix):
         if self._known_prefixes is not None:
@@ -190,7 +197,7 @@ class Envoy(object):
                     before_encrypt(chunk)
 
                 block.encrypt()
-                block_name = f'{prefix}/{n:0>9}-{nonce}'
+                block_name = f'{prefix}/{padded(n)}-{nonce}'
 
                 executor.submit(upload_block, block_name, block)
 

@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Fixes large snapshots getting pruned after creation.
+  [href]
+
 0.2.2 (2018-05-25)
 ~~~~~~~~~~~~~~~~~~~~~
 

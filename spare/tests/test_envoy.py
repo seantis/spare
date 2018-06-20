@@ -114,6 +114,16 @@ def test_prefixes(s3):
         assert tuple(envoy.prefixes()) == ('foo', )
 
 
+def test_first_block(s3):
+    with Envoy(s3, 'bucket', 'password') as envoy:
+        envoy.blocksize = 16
+        envoy.ensure_bucket_exists()
+
+        envoy.send('foo', BytesIO(secrets.token_bytes(16*20)))
+        assert sum(1 for k in envoy.keys()) == 20
+        assert tuple(envoy.prefixes()) == ('foo', )
+
+
 def test_lock(s3):
     with Envoy(s3, 'bucket', 'password'):
         pass
