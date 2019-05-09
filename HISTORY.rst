@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Stops showing errors when files go missing during operation.
+  [href]
+
 0.2.3 (2018-06-20)
 ~~~~~~~~~~~~~~~~~~~~~
 
