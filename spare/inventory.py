@@ -55,7 +55,7 @@ def scandir(path, recurse=True, follow_symlinks=False):
 
         # it's possible for directories to vanish during operation
         if next_path != path and not os.path.lexists(next_path):
-            continue
+            continue  # pragma: no cover
 
         with os.scandir(next_path) as iterator:
             for e in iterator:
