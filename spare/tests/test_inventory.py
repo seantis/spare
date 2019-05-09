@@ -6,7 +6,7 @@ import tempfile
 from contextlib import suppress
 from io import UnsupportedOperation
 from pathlib import Path
-from spare.inventory import Inventory
+from spare.inventory import Inventory, scandir
 
 
 def test_empty_inventory(temporary_path):
@@ -96,8 +96,10 @@ def test_ignore_devices():
 
     # try a bunch of folders to really get all kinds of devices
     # no need to do this recursively (which might not be a great idea)
+    ignored = (FileNotFoundError, UnsupportedOperation, PermissionError)
+
     for path in ('/dev', '/dev/block', '/dev/disk/by-uuid'):
-        with suppress(FileNotFoundError, UnsupportedOperation):
+        with suppress(*ignored):
             inventory.scan_directory(Path(path), recurse=False)
 
 
@@ -225,3 +227,19 @@ def test_skip_files(temporary_path):
         'bar/bar',
         'foo',
     }
+
+
+def test_missing_path_in_scandir(temporary_path):
+
+    # the initial path *has* to exist
+    with pytest.raises(FileNotFoundError):
+        list(scandir(temporary_path / 'foo'))
+
+    # other paths may be missing
+    (temporary_path / 'bar').mkdir()
+    (temporary_path / 'bar' / 'baz').mkdir()
+
+    scanner = scandir(temporary_path)
+    _ = scanner.send(None)
+    _ = scanner.send(temporary_path / 'bar')
+    _ = scanner.send(temporary_path / 'foo')
