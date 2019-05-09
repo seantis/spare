@@ -247,8 +247,7 @@ def test_force_backup(s3, temporary_path):
 
     create(temporary_path / 'foo', s3, 'my-bucket', 'password')
 
-    (temporary_path / 'foo' / 'bar').unlink()
-    (temporary_path / 'foo').rmdir()
+    (temporary_path / 'foo').rename(temporary_path / 'bar')
 
     (temporary_path / 'foo').mkdir()
     (temporary_path / 'foo' / 'bar').touch()

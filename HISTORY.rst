@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+- Fixes tests failing on Travis.
+  [href]
+
 0.2.4 (2019-05-09)
 ~~~~~~~~~~~~~~~~~~~~~
 
