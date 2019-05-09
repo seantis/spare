@@ -96,7 +96,12 @@ def test_ignore_devices():
 
     # try a bunch of folders to really get all kinds of devices
     # no need to do this recursively (which might not be a great idea)
-    ignored = (FileNotFoundError, UnsupportedOperation, PermissionError)
+    ignored = (
+        FileNotFoundError,
+        UnsupportedOperation,
+        PermissionError,
+        OSError
+    )
 
     for path in ('/dev', '/dev/block', '/dev/disk/by-uuid'):
         with suppress(*ignored):
