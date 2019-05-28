@@ -77,6 +77,7 @@ class Envoy(object):
             raise BucketAlreadyLockedError(self.bucket_name)
 
         self._known_prefixes = set(self.prefixes())
+        self._known_prefixes.add('.spare')
 
         with BytesIO() as f:
             self.bucket.upload_fileobj(f, '.lock')

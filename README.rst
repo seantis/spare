@@ -56,6 +56,24 @@ To verify the backup (downloads everything!)::
 
     spare verify --password my-password --bucket my-bucket --path /my-path
 
+Locking
+-------
+
+During a spare run, the bucket is locked, so other Spare instances know not
+to touch it. However, it's possible that a lock persists when Spare crashes.
+
+If that happens, make sure that the host pushing the backup is truly not
+running any spare processes, then use the unlock command:
+
+To unlock a backup (if locked)
+
+    spare unlock --password my-password --bucket my-bucket
+
+If however, you would like to lock a backup to avoid anyone from changing it,
+run the following command:
+
+    spare lock --password my-password --bucket my-bucket
+
 Run the Tests
 -------------
 

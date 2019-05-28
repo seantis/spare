@@ -5,7 +5,7 @@ import traceback
 
 from logbook import StreamHandler
 from signal import SIGTERM
-from spare.backup import create, restore, validate
+from spare.backup import create, restore, validate, lock, unlock
 from spare.utils import delay_signal, s3_client
 
 
@@ -76,5 +76,31 @@ def restore_cli(endpoint, access_key, secret_key, path, password, bucket):
 def validate_cli(endpoint, access_key, secret_key, password, bucket):
     s3 = s3_client(endpoint, access_key, secret_key)
     rc = 0 if validate(s3, bucket, password) else 1
+
+    sys.exit(rc)
+
+
+@cli.command(name='lock')
+@click.option('--endpoint', envvar='SPARE_ENDPOINT', required=True)
+@click.option('--access-key', envvar='SPARE_ACCESS_KEY', required=True)
+@click.option('--secret-key', envvar='SPARE_SECRET_KEY', required=True)
+@click.option('--password', envvar='SPARE_PASSWORD', required=True)
+@click.option('--bucket', envvar='SPARE_BUCKET', required=True)
+def lock_cli(endpoint, access_key, secret_key, password, bucket):
+    s3 = s3_client(endpoint, access_key, secret_key)
+    rc = 0 if lock(s3, bucket, password) else 1
+
+    sys.exit(rc)
+
+
+@cli.command(name='unlock')
+@click.option('--endpoint', envvar='SPARE_ENDPOINT', required=True)
+@click.option('--access-key', envvar='SPARE_ACCESS_KEY', required=True)
+@click.option('--secret-key', envvar='SPARE_SECRET_KEY', required=True)
+@click.option('--password', envvar='SPARE_PASSWORD', required=True)
+@click.option('--bucket', envvar='SPARE_BUCKET', required=True)
+def unlock_cli(endpoint, access_key, secret_key, password, bucket):
+    s3 = s3_client(endpoint, access_key, secret_key)
+    rc = 0 if unlock(s3, bucket, password) else 1
 
     sys.exit(rc)

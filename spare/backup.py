@@ -48,3 +48,27 @@ def validate(s3, bucket, password):
                 valid = False
 
         return valid
+
+
+def lock(s3, bucket, password):
+    envoy = Envoy(s3, bucket, password)
+    envoy.ensure_bucket_exists()
+    envoy.ensure_bucket_is_ours()
+
+    if not envoy.locked:
+        envoy.lock()
+        return True
+
+    return False
+
+
+def unlock(s3, bucket, password):
+    envoy = Envoy(s3, bucket, password)
+    envoy.ensure_bucket_exists()
+    envoy.ensure_bucket_is_ours()
+
+    if envoy.locked:
+        envoy.unlock()
+        return True
+
+    return False
