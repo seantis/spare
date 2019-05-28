@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+0.3.0 (2019-05-28)
+~~~~~~~~~~~~~~~~~~~~~
+
 - Adds a lock/unlock commands.
   [href]
 
