@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 name = 'spare'
 description = 'One S3 backup, encrypted on the fly.'
-version = '0.3.0'
+version = '0.4.0'
 
 
 def get_long_description():

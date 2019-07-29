@@ -1,6 +1,9 @@
 Changelog
 ---------
 
+0.4.0 (2019-07-29)
+~~~~~~~~~~~~~~~~~~~~~
+
 - Improves handling of SIGINT/SIGTERM.
 
   It should now be safe to kill Spare during backup runs. Spare will still
