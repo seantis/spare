@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+- Improves handling of SIGINT/SIGTERM.
+
+  It should now be safe to kill Spare during backup runs. Spare will still
+  block until the current object is properly uploaded, but it won't try to
+  finish the snapshot.
+
+  The uploaded files might of course be discarded, but the bucket should be
+  unlocked and the uploaded files should either be fully uploaded, or not at
+  all.
+  [href]
+
 0.3.0 (2019-05-28)
 ~~~~~~~~~~~~~~~~~~~~~
 

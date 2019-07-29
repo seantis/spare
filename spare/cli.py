@@ -4,9 +4,8 @@ import sys
 import traceback
 
 from logbook import StreamHandler
-from signal import SIGTERM
 from spare.backup import create, restore, validate, lock, unlock
-from spare.utils import delay_signal, s3_client
+from spare.utils import s3_client
 
 
 VALID_PATH = click.Path(exists=True, file_okay=False)
@@ -48,9 +47,7 @@ def cli(ctx, pdb, verbose):  # pragma: no cover
 def create_cli(endpoint, access_key, secret_key, path,
                password, bucket, skip, force):
     s3 = s3_client(endpoint, access_key, secret_key)
-
-    with delay_signal(SIGTERM, None):
-        create(path, s3, bucket, password, skip=skip or None, force=force)
+    create(path, s3, bucket, password, skip=skip or None, force=force)
 
 
 @cli.command(name='restore')
@@ -62,9 +59,7 @@ def create_cli(endpoint, access_key, secret_key, path,
 @click.option('--path', envvar='SPARE_PATH', type=VALID_PATH, required=True)
 def restore_cli(endpoint, access_key, secret_key, path, password, bucket):
     s3 = s3_client(endpoint, access_key, secret_key)
-
-    with delay_signal(SIGTERM, None):
-        restore(path, s3, bucket, password)
+    restore(path, s3, bucket, password)
 
 
 @cli.command(name='validate')

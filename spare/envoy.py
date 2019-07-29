@@ -1,5 +1,6 @@
 import re
 import secrets
+import weakref
 
 from boto3.s3.transfer import TransferConfig
 from concurrent.futures import ThreadPoolExecutor
@@ -10,7 +11,7 @@ from spare.errors import BucketNotLockedError
 from spare.errors import BucketOtherwiseUsedError
 from spare.errors import ExistingPrefixError
 from spare.errors import InvalidPrefixError
-from spare.utils import read_in_chunks
+from spare.utils import read_in_chunks, on_kill, delay_signals
 
 
 def padded(n):
@@ -61,6 +62,9 @@ class Envoy(object):
 
         # disable threads as we manage our own
         self.transfer_config = TransferConfig(use_threads=False)
+
+        # clean exit on kill
+        on_kill(weakref.WeakMethod(self.unlock))
 
     def __enter__(self):
         self.lock()
@@ -189,18 +193,19 @@ class Envoy(object):
                 self.bucket.upload_fileobj(
                     buffer, name, Config=self.transfer_config)
 
-        with ThreadPoolExecutor() as executor:
-            for n, chunk in enumerate(chunks, start=1):
-                nonce = self.generate_nonce()
-                block = self.spawn_block(nonce, chunk)
+        with delay_signals("Uploading {prefix}"):
+            with ThreadPoolExecutor() as executor:
+                for n, chunk in enumerate(chunks, start=1):
+                    nonce = self.generate_nonce()
+                    block = self.spawn_block(nonce, chunk)
 
-                if before_encrypt is not None:
-                    before_encrypt(chunk)
+                    if before_encrypt is not None:
+                        before_encrypt(chunk)
 
-                block.encrypt()
-                block_name = f'{prefix}/{padded(n)}-{nonce}'
+                    block.encrypt()
+                    block_name = f'{prefix}/{padded(n)}-{nonce}'
 
-                executor.submit(upload_block, block_name, block)
+                    executor.submit(upload_block, block_name, block)
 
         self.on_store_prefix(prefix)
 

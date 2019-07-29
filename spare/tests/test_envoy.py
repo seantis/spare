@@ -1,4 +1,7 @@
+import os
 import secrets
+import signal
+import weakref
 import pytest
 
 from io import BytesIO
@@ -9,6 +12,8 @@ from spare.errors import BucketNotLockedError
 from spare.errors import BucketOtherwiseUsedError
 from spare.errors import ExistingPrefixError
 from spare.errors import InvalidPrefixError
+from spare.utils import on_kill, delay_signals
+from unittest.mock import patch
 
 
 @pytest.mark.parametrize('block', AVAILABLE_BLOCKS)
@@ -153,3 +158,38 @@ def test_envoy_fail_on_foreign_buckets(s3):
     with pytest.raises(BucketOtherwiseUsedError):
         with Envoy(s3, 'bucket', 'password'):
             pass
+
+
+def test_clean_unlock(s3):
+
+    envoy = Envoy(s3, 'bucket', 'password')
+    envoy.lock()
+    assert envoy.locked
+
+    # the lock should have been removed
+    with patch('sys.exit'):
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    assert not envoy.locked
+
+    # if the model is deleted, there should not be an error
+    del envoy
+    with patch('sys.exit'):
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    # even if the method throws an error
+    on_kill(weakref.ref(AssertionError))
+    with patch('sys.exit'):
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    # this should work with delay signal
+    envoy = Envoy(s3, 'bucket', 'password')
+
+    with patch('sys.exit'):
+        with delay_signals("Delaying signals"):
+            envoy.lock()
+            assert envoy.locked
+            os.kill(os.getpid(), signal.SIGTERM)
+            assert envoy.locked
+
+        assert not envoy.locked

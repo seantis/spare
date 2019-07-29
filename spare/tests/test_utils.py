@@ -62,7 +62,7 @@ def test_delay_signal():
     process.start()
     sleep(0.5)
     os.kill(process.pid, signal.SIGTERM)
-    sleep(0.1)
+    sleep(0.5)
     assert not process.is_alive()
 
     # the other process exits when it's done
@@ -70,7 +70,7 @@ def test_delay_signal():
     process.start()
     sleep(0.5)
     os.kill(process.pid, signal.SIGTERM)
-    sleep(0.1)
+    sleep(0.5)
     assert process.is_alive()
 
     # stop the test

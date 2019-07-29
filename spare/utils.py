@@ -1,14 +1,20 @@
 import os
 import signal
 import stat
+import sys
+import weakref
 
 from boto3 import resource
 from botocore.client import Config
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
 from logbook import SyslogHandler
 from pathlib import Path
 from spare import log
 from spare.errors import FileChangedDuringReadError
+
+
+CLEANUP_FUNCTIONS = None
+KILL_SIGNALS = (signal.SIGTERM, signal.SIGINT)
 
 
 def read_in_chunks(fileobj, chunksize):
@@ -21,6 +27,39 @@ def read_in_chunks(fileobj, chunksize):
             yield chunk
         else:
             break
+
+
+def clean_exit(*args):
+    """ Exits cleanly, running cleanup functions first. """
+
+    return_code = 0
+
+    for ref in CLEANUP_FUNCTIONS:
+        try:
+            fn = ref()
+
+            if fn:
+                fn()
+        except Exception:
+            return_code = 1
+            log.exception("Failure during signal handling")
+
+    sys.exit(return_code)
+
+
+def on_kill(fn, signals=KILL_SIGNALS):
+    """ Executes cleanup functions when the program is killed. """
+
+    assert isinstance(fn, weakref.ref)
+    global CLEANUP_FUNCTIONS
+
+    if CLEANUP_FUNCTIONS is None:
+        CLEANUP_FUNCTIONS = set()
+
+        for signum in signals:
+            signal.signal(signum, clean_exit)
+
+    CLEANUP_FUNCTIONS.add(fn)
 
 
 @contextmanager
@@ -119,3 +158,14 @@ class delay_signal(object):  # pragma: no cover
 
         if self.received:
             self.previous(*self.received)
+
+
+@contextmanager
+def delay_signals(message, signals=KILL_SIGNALS):
+    """ Delay multiple signals at once. """
+
+    with ExitStack() as stack:
+        for signum in signals:
+            stack.enter_context(delay_signal(signum, message))
+
+        yield
